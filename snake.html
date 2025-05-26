@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Змійка | GameHub</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet" />
+  <style>
+    /* Стилі для canvas за замовчуванням (чорний фон, коли гра неактивна) */
+    canvas {
+      background: #111; /* Чисто чорний фон за замовчуванням */
+      display: block;
+      margin: 40px auto;
+      border: 4px solid #00eaff;
+
+      /* Стилі для адаптивності */
+      width: min(400px, 90vw);
+      height: min(400px, 90vw);
+    }
+
+    /* НОВИЙ CSS-КЛАС: фон з сіткою, який додаватиметься під час гри */
+    .game-active-background {
+      background:
+        linear-gradient(to right, #222 1px, transparent 1px), /* Вертикальні лінії сітки */
+        linear-gradient(to bottom, #222 1px, transparent 1px); /* Горизонтальні лінії сітки */
+      background-size: 20px 20px; /* Розмір комірки сітки (20x20px), щоб збігалася з box */
+      background-color: #111; /* Основний колір фону (між лініями) */
+    }
+
+    /* Інші стилі, що були в вашому оригінальному <style> блоці */
+    #score {
+      text-align: center;
+      font-size: 24px;
+      margin-top: 10px;
+      color: #00eaff;
+    }
+
+    .center-btn {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .center-btn button {
+      background: linear-gradient(to right, #00eaff, #0072ff);
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Медіа-запити для зменшення розміру елементів на дуже малих екранах */
+    @media (max-width: 480px) {
+        #score {
+            font-size: 20px;
+        }
+        .center-btn button {
+            padding: 8px 15px;
+            font-size: 16px;
+        }
+    }
+  </style>
+</head>
+<body>
+<div class="background"></div>
+<div class="wrapper">
+  <header>
+    <div class="logo">🎮 GameHub</div>
+    <nav>
+      <a href="index.php">Ігри</a>
+      <a href="profile.php">Профіль</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Змійка</h1>
+    <div id="score">Рахунок: <span id="scoreVal">0</span></div>
+    <canvas id="game"></canvas>
+    <div class="center-btn">
+      <button onclick="startGame()">Почати гру</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 GameHub | Telegram | Контакти</p>
+  </footer>
+</div>
+
+<script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  let box;
+  let snake, food, dx, dy, score, game;
+
+  function calculateBoxSize() {
+    const desiredGridDimension = 20;
+    box = Math.floor(canvas.clientWidth / desiredGridDimension);
+    if (box < 1) box = 1;
+    canvas.width = box * desiredGridDimension;
+    canvas.height = box * desiredGridDimension;
+  }
+
+  function startGame() {
+    calculateBoxSize();
+
+    // ДОДАНО: Додаємо клас з сіткою, коли гра починається
+    canvas.classList.add('game-active-background');
+
+    const initialX = Math.floor((canvas.width / 2) / box) * box - box;
+    const initialY = Math.floor((canvas.height / 2) / box) * box;
+
+    snake = [{x: initialX, y: initialY}];
+    dx = box;
+    dy = 0;
+    score = 0;
+    document.getElementById("scoreVal").textContent = score;
+    food = randomFood();
+    clearInterval(game);
+    game = setInterval(draw, 100);
+  }
+
+  function randomFood() {
+    return {
+      x: Math.floor(Math.random() * (canvas.width / box)) * box,
+      y: Math.floor(Math.random() * (canvas.height / box)) * box
+    };
+  }
+
+  function draw() {
+    // === ВИДАЛЕНО: ctx.fillStyle = "#111"; та ctx.fillRect(0, 0, canvas.width, canvas.height); ===
+    // Тепер фон управляється CSS-ом, і ми не повинні його перемальовувати щокадру.
+    // Просто очищаємо канвас, щоб попередні малюнки зникли, а сітка залишалася видимою.
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // ВИКОРИСТОВУЄМО clearRect ДЛЯ ОЧИЩЕННЯ КОНТЕНТУ, А НЕ ФОНУ
+
+    snake.forEach((s, i) => {
+      ctx.fillStyle = i === 0 ? "#00eaff" : "#00ff88";
+      ctx.fillRect(s.x, s.y, box, box);
+    });
+
+    ctx.fillStyle = "#ff3c3c";
+    ctx.fillRect(food.x, food.y, box, box);
+
+    const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+    if (
+      head.x < 0 || head.x >= canvas.width ||
+      head.y < 0 || head.y >= canvas.height ||
+      snake.some(seg => seg.x === head.x && seg.y === head.y)
+    ) {
+      clearInterval(game);
+      canvas.classList.remove('game-active-background');
+      sendScore(score);
+      setTimeout(() => {
+        alert("Гру закінчено! Ваш рахунок: " + score);
+      }, 100);
+      return;
+    }
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      document.getElementById("scoreVal").textContent = score;
+      food = randomFood();
+    } else {
+      snake.pop();
+    }
+  }
+
+  document.addEventListener("keydown", e => {
+    const key = e.key.toLowerCase();
+    if ((key === "arrowup" || key === "w") && dy === 0) {
+      dx = 0; dy = -box;
+    } else if ((key === "arrowdown" || key === "s") && dy === 0) {
+      dx = 0; dy = box;
+    } else if ((key === "arrowleft" || key === "a") && dx === 0) {
+      dx = -box; dy = 0;
+    } else if ((key === "arrowright" || key === "d") && dx === 0) {
+      dx = box; dy = 0;
+    }
+  });
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  canvas.addEventListener("touchstart", function(e) {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", function(e) {
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", function(e) {
+    const touch = e.changedTouches[0];
+    const dxTouch = touch.clientX - touchStartX;
+    const dyTouch = touch.clientY - touchStartY;
+
+    if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
+      if (dxTouch > 30 && dx === 0) {
+        dx = box; dy = 0;
+      } else if (dxTouch < -30 && dx === 0) {
+        dx = -box; dy = 0;
+      }
+    } else {
+      if (dyTouch > 30 && dy === 0) {
+        dx = 0; dy = box;
+      } else if (dyTouch < -30 && dy === 0) {
+        dx = 0; dy = -box;
+      }
+    }
+  });
+
+  function sendScore(score) {
+    fetch("save_score.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        game_code: "snake",
+        score: score
+      })
+    })
+    .then(res => res.text())
+    .then(data => console.log("Score saved:", data))
+    .catch(err => console.error("Error saving score:", err));
+  }
+
+  document.addEventListener('DOMContentLoaded', calculateBoxSize);
+
+  window.addEventListener('resize', () => {
+    calculateBoxSize();
+    if (game) {
+        clearInterval(game);
+        canvas.classList.remove('game-active-background');
+        setTimeout(() => {
+            alert("Розмір вікна змінено, гру було зупинено. Будь ласка, натисніть 'Почати гру' знову.");
+        }, 100);
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+
+/* Повний CSS — як у попередньому повідомленні */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Orbitron', sans-serif;
+  background-color: #121212;
+  color: white;
+}
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+main {
+  flex: 1;
+  padding: 40px 20px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+.background {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: url('https://images.unsplash.com/photo-1608138023263-3b7d7c4a68c0?auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+  filter: blur(5px) brightness(0.6);
+  z-index: 0;
+}
+header {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: #00eaff;
+}
+nav a {
+  color: #ccc;
+  margin-left: 20px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+nav a:hover {
+  color: #00eaff;
+}
+.games {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 40px;
+}
+.game-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 25px;
+  margin: 15px;
+  width: 280px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.game-card:hover {
+  transform: translateY(-5px);
+}
+.game-card h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.game-card p {
+  font-size: 14px;
+  color: #ddd;
+}
+.game-card button {
+  background: linear-gradient(to right, #00eaff, #0072ff);
+  border: none;
+  padding: 10px 20px;
+  margin-top: 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  color: black;
+}
+.login-box {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  color: white;
+}
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.login-box button {
+  background: linear-gradient(to right, #00eaff, #0072ff);
+  border: none;
+  padding: 12px;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  color: black;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.login-box button:hover {
+  transform: scale(1.05);
+}
+.login-box p {
+  font-size: 14px;
+  color: #ccc;
+}
+.login-box a {
+  color: #00eaff;
+  text-decoration: none;
+}
+.error-message {
+  background-color: #ff3c3c;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+footer {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #ccc;
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 768px) {
+  .games {
+    flex-direction: column;
+    align-items: center;
+  }
+}

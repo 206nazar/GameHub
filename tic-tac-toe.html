@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Хрестики-нулики | GameHub</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet" />
+  <style>
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      margin: 40px auto;
+      width: max-content;
+    }
+    .cell {
+      background: #222;
+      border: 2px solid #00eaff;
+      font-size: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #00eaff;
+    }
+    .cell:hover {
+      background: #333;
+    }
+    .cell.win {
+      background-color: #00eaff;
+      color: #111;
+      font-weight: bold;
+      transition: 0.3s;
+      box-shadow: 0 0 12px #00eaff;
+    }
+    .center-btn, .game-mode-selector {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    .mode-label {
+      font-size: 18px;
+      margin-right: 10px;
+      color: #00eaff;
+      align-self: center;
+    }
+    button, select {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(to right, #00eaff, #0072ff);
+      color: #000;
+      font-weight: bold;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🎮 GameHub</div>
+    <nav>
+      <a href="index.php">Ігри</a>
+      <a href="leaderboard.php">Рейтинг</a>
+      <a href="profile.php">Профіль</a>
+      <a href="logout.php">Вийти</a>
+    </nav>
+  </header>
+
+  <div class="wrapper">
+    <main>
+      <h1>Гра: Хрестики-нулики</h1>
+
+      <div class="game-mode-selector">
+        <span class="mode-label">🎮 Режим гри:</span>
+        <select id="modeSelect" onchange="changeMode()">
+          <option value="local">На одному екрані</option>
+          <option value="bot">Проти ШІ</option>
+        </select>
+      </div>
+
+      <div class="board" id="board"></div>
+      <div id="status">Хід гравця: X</div>
+      <div class="center-btn">
+        <button onclick="resetGame()">Почати знову</button>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>© 2025 GameHub | Telegram | Контакти</p>
+  </footer>
+
+  <script>
+    const board = document.getElementById('board');
+    const status = document.getElementById('status');
+    const modeSelect = document.getElementById('modeSelect');
+    let currentPlayer = 'X';
+    let gameOver = false;
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    let mode = modeSelect.value;
+
+    const cells = Array.from({ length: 9 }, (_, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = i;
+      cell.addEventListener('click', handleClick);
+      board.appendChild(cell);
+      return cell;
+    });
+
+    function changeMode() {
+      mode = modeSelect.value;
+      resetGame();
+    }
+
+    function handleClick(e) {
+      const cell = e.target;
+      const index = cell.dataset.index;
+      if (gameState[index] !== "" || gameOver || (mode === 'bot' && currentPlayer === 'O')) return;
+
+      makeMove(index, currentPlayer);
+
+      if (mode === 'bot' && currentPlayer === 'O' && !gameOver) {
+        setTimeout(botMove, 500);
+      }
+    }
+
+    function makeMove(index, player) {
+      gameState[index] = player;
+      cells[index].textContent = player;
+
+      if (checkWin(player)) {
+        status.textContent = `Гравець ${player} переміг!`;
+        sendScore(player);
+        gameOver = true;
+      } else if (gameState.every(cell => cell !== "")) {
+        status.textContent = 'Нічия!';
+        sendScore('draw');
+        gameOver = true;
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        status.textContent = `Хід гравця: ${currentPlayer}`;
+      }
+    }
+
+    function isWin(player) {
+      const wins = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+      return wins.some(combo => combo.every(i => gameState[i] === player));
+    }
+
+    function botMove() {
+      for (let i = 0; i < 9; i++) {
+        if (gameState[i] === "") {
+          gameState[i] = 'O';
+          if (isWin('O')) {
+            gameState[i] = "";
+            makeMove(i, 'O');
+            return;
+          }
+          gameState[i] = "";
+        }
+      }
+
+      for (let i = 0; i < 9; i++) {
+        if (gameState[i] === "") {
+          gameState[i] = 'X';
+          if (isWin('X')) {
+            gameState[i] = "";
+            makeMove(i, 'O');
+            return;
+          }
+          gameState[i] = "";
+        }
+      }
+
+      if (gameState[4] === "") {
+        makeMove(4, 'O');
+        return;
+      }
+
+      const corners = [0, 2, 6, 8];
+      for (let i of corners) {
+        if (gameState[i] === "") {
+          makeMove(i, 'O');
+          return;
+        }
+      }
+
+      for (let i = 0; i < 9; i++) {
+        if (gameState[i] === "") {
+          makeMove(i, 'O');
+          return;
+        }
+      }
+    }
+
+    function checkWin(player) {
+      const wins = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+      for (let combo of wins) {
+        if (combo.every(i => gameState[i] === player)) {
+          combo.forEach(i => cells[i].classList.add("win"));
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function resetGame() {
+      gameState = ["", "", "", "", "", "", "", "", ""];
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('win');
+      });
+      currentPlayer = 'X';
+      status.textContent = 'Хід гравця: X';
+      gameOver = false;
+    }
+
+    function sendScore(result) {
+      let score = result === 'X' ? 1 : result === 'draw' ? 0 : -1;
+      fetch('save_score.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_code: 'tictactoe',
+          score: score
+        })
+      })
+      .then(res => res.text())
+      .then(data => console.log('Результат збережено:', data))
+      .catch(err => console.error('Помилка збереження:', err));
+    }
+  </script>
+</body>
+</html>
